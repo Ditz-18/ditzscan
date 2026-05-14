@@ -1,0 +1,132 @@
+/* ===== KD GROUP ===== */
+.kd-group { margin-bottom: 10px; }
+
+.kd-group-header {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(90deg, rgba(0,212,255,0.08) 0%, transparent 100%);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius);
+  padding: 10px 14px; cursor: pointer;
+  transition: all 0.2s; user-select: none;
+}
+.kd-group-header:hover {
+  background: linear-gradient(90deg, rgba(0,212,255,0.14) 0%, transparent 100%);
+}
+
+.kd-toggle-icon {
+  color: var(--accent); font-size: 11px;
+  transition: transform 0.3s ease; flex-shrink: 0;
+}
+.kd-toggle-icon.open { transform: rotate(90deg); }
+
+.kd-group-name {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 700; letter-spacing: 2px;
+  color: var(--accent); flex: 1;
+}
+
+.kd-group-count {
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: 20px; padding: 2px 10px;
+  font-size: 10px; font-family: var(--font-mono);
+  color: var(--text-muted); flex-shrink: 0;
+}
+
+.kd-group-actions {
+  display: flex; gap: 5px; align-items: center; flex-shrink: 0;
+}
+
+.kd-group-body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.35s ease;
+}
+.kd-group-body.open {
+  max-height: 9999px;
+}
+
+/* ===== TABLE WRAPPER ===== */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+/* ===== DATA TABLE ===== */
+.data-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 11.5px; font-family: var(--font-mono);
+  min-width: 900px;
+}
+
+.data-table thead th {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 8px 10px; text-align: left;
+  font-family: var(--font-body); font-size: 10px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-muted); white-space: nowrap;
+  cursor: pointer; user-select: none; position: sticky; top: 0;
+  z-index: 10;
+}
+.data-table thead th:hover { color: var(--accent); }
+.data-table thead th.sorted-asc .sort-icon::before { content: '\f0de'; }
+.data-table thead th.sorted-desc .sort-icon::before { content: '\f0dd'; }
+.sort-icon { font-family: 'Font Awesome 6 Free'; font-weight: 900; margin-left: 5px; font-size: 9px; color: var(--accent); }
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.data-table tbody tr:nth-child(even) { background: rgba(0,0,0,0.15); }
+.data-table tbody tr:hover { background: var(--bg-card-hover); }
+.data-table tbody tr.selected-row { background: rgba(0,212,255,0.06); }
+
+.data-table td {
+  padding: 6px 10px; border-right: 1px solid var(--border);
+  vertical-align: middle; color: var(--text-secondary);
+  white-space: nowrap; max-width: 200px;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.data-table td:last-child { border-right: none; }
+
+/* Row number */
+.td-no {
+  color: var(--text-muted); font-size: 10px;
+  text-align: center; width: 36px;
+  border-right: 1px solid var(--border);
+}
+
+/* Editable cell */
+.td-editable { cursor: text; }
+.td-editable:hover { background: var(--accent-glow) !important; color: var(--accent); }
+.td-editable.editing { padding: 0; background: transparent !important; }
+.td-editable input {
+  background: var(--bg-input); border: 1px solid var(--accent);
+  color: var(--accent); border-radius: 4px;
+  padding: 4px 8px; font-family: var(--font-mono); font-size: 11.5px;
+  outline: none; width: 100%; min-width: 80px; height: 100%;
+  display: block;
+}
+
+/* Action column */
+.td-actions { display: flex; gap: 4px; align-items: center; padding: 4px 8px; }
+
+/* Highlight match */
+.highlight { background: rgba(0,212,255,0.25); color: var(--accent); border-radius: 2px; padding: 0 1px; }
+
+/* ===== SUMMARY TABLE (Dashboard) ===== */
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  padding: 8px 12px; text-align: left; font-size: 10px;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-muted); font-weight: 600;
+}
+.summary-table td {
+  border: 1px solid var(--border); padding: 8px 12px;
+  color: var(--text-secondary); font-family: var(--font-mono); font-size: 12px;
+}
+.summary-table tbody tr:hover { background: var(--bg-card-hover); }

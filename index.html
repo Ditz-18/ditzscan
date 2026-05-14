@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DITZ SCAN</title>
+  <meta name="description" content="DITZ SCAN - Sistem Manajemen Data Scan" />
+  <meta name="theme-color" content="#080c18" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DITZ SCAN" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/table.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="sidebar-toggle" id="sidebar-toggle" title="Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="topbar-brand">
+      <div class="brand-icon"><i class="fa-solid fa-barcode"></i></div>
+      <span class="brand-name">DITZ <span>SCAN</span></span>
+    </div>
+  </div>
+  <div class="topbar-profile">
+    <div class="profile-avatar">AD</div>
+    <span class="profile-name">Adit</span>
+  </div>
+</header>
+
+<div class="sidebar-overlay"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Navigasi</div>
+    <div class="sidebar-item active" data-page="dashboard"><i class="fa-solid fa-gauge"></i> Dashboard</div>
+    <div class="sidebar-item" data-page="input"><i class="fa-solid fa-keyboard"></i> Input Data</div>
+    <div class="sidebar-item" data-page="data"><i class="fa-solid fa-table"></i> Data &amp; Tabel</div>
+    <div class="sidebar-item" data-page="log"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat</div>
+    <div class="sidebar-item" data-page="settings"><i class="fa-solid fa-sliders"></i> Pengaturan</div>
+  </div>
+  <div class="sidebar-stats">
+    <div class="sidebar-label" style="padding-left:2px">Ringkasan</div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-groups">0</div>
+      <div class="stat-lbl">Total Grup KD</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-rows">0</div>
+      <div class="stat-lbl">Total Baris Data</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <section class="page active" id="page-dashboard">
+    <div class="section-title"><i class="fa-solid fa-gauge"></i> Dashboard</div>
+    <div class="dash-stats">
+      <div class="dash-stat-card">
+        <div class="dash-stat-label">Total Grup KD</div>
+        <div class="dash-stat-num" id="dash-groups">0</div>
+        <i class="fa-solid fa-layer-group dash-stat-icon"></i>
+      </div>
+      <div class="dash-stat-card orange">
+        <div class="dash-stat-label">Total Baris Data</div>
+        <div class="dash-stat-num" id="dash-rows">0</div>
+        <i class="fa-solid fa-list-ol dash-stat-icon"></i>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-layer-group"></i> Daftar Grup KD</div>
+      <div class="table-wrap" style="border:none">
+        <table class="summary-table">
+          <thead><tr><th>KD</th><th style="text-align:center">Baris</th><th>Aksi</th></tr></thead>
+          <tbody id="dash-kd-list"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-bolt"></i> Aktivitas Terakhir</div>
+      <div id="dash-activity"></div>
+    </div>
+  </section>
+
+  <!-- INPUT DATA -->
+  <section class="page" id="page-input">
+    <div class="section-title"><i class="fa-solid fa-keyboard"></i> Input Data</div>
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-folder-tree"></i> Pilih Grup KD</div>
+      <div class="kd-selector">
+        <span class="kd-fixed">KD</span>
+        <span class="kd-sep">-</span>
+        <div class="kd-picker-wrap" id="kd-slot2">
+          <button class="kd-picker-btn" type="button">
+            <span>D1</span><i class="fa-solid fa-chevron-down" style="font-size:10px"></i>
+          </button>
+          <div class="kd-picker-dropdown"></div>
+        </div>
+        <span class="kd-sep">-</span>
+        <div class="kd-picker-wrap" id="kd-slot3">
+          <button class="kd-picker-btn" type="button">
+            <span>01</span><i class="fa-solid fa-chevron-down" style="font-size:10px"></i>
+          </button>
+          <div class="kd-picker-dropdown"></div>
+        </div>
+      </div>
+      <div class="kd-preview" id="kd-preview">KD yang dipilih: <strong>KD - D1 - 01</strong></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-qrcode"></i> Masukkan / Scan Data</div>
+      <div class="input-wrap">
+        <textarea class="input-textarea" id="main-input"
+          placeholder="Tempel atau ketik string data di sini...&#10;Contoh: V:VBYDID17;PO:9300001617;D:2026-03-17;Q:60;M:13571595-00;...&#10;&#10;Ctrl+Enter untuk submit"></textarea>
+        <button class="scan-btn" id="btn-scan" title="Scan via kamera">
+          <i class="fa-solid fa-camera"></i>
+        </button>
+      </div>
+      <div class="input-actions">
+        <button class="btn btn-primary" id="btn-input-submit"><i class="fa-solid fa-plus"></i> Tambah Data</button>
+        <button class="btn btn-secondary" id="btn-input-clear"><i class="fa-solid fa-eraser"></i> Bersihkan</button>
+      </div>
+    </div>
+
+    <div class="card" style="border-style:dashed">
+      <div class="card-title"><i class="fa-solid fa-circle-info"></i> Format Data</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
+        Format: <code style="color:var(--accent);background:var(--bg-input);padding:1px 6px;border-radius:3px">KEY:VALUE;KEY:VALUE;...</code>
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <span class="badge badge-muted">V = Vendor</span>
+        <span class="badge badge-muted">PO = PO Number</span>
+        <span class="badge badge-muted">D = Date</span>
+        <span class="badge badge-muted">Q = Quantity</span>
+        <span class="badge badge-muted">M = Material</span>
+        <span class="badge badge-muted">B = Batch/Box</span>
+        <span class="badge badge-muted">S = Serial Number</span>
+        <span class="badge badge-muted">ST = Storage Loc</span>
+        <span class="badge badge-muted">C = Customer</span>
+        <span class="badge badge-muted">DT = Delivery Type</span>
+        <span class="badge badge-muted">DS = Destination</span>
+        <span class="badge badge-muted">PA = Pallet</span>
+        <span class="badge badge-muted">P = Plant</span>
+        <span class="badge badge-muted">Z = Z Value</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA & TABLE -->
+  <section class="page" id="page-data">
+    <div class="section-title"><i class="fa-solid fa-table"></i> Data &amp; Tabel</div>
+    <div class="filter-bar">
+      <input type="search" class="filter-search" id="filter-search" placeholder="Cari di semua kolom..." />
+      <select class="filter-select" id="filter-kd"><option value="">Semua KD</option></select>
+      <button class="btn btn-secondary btn-sm" id="btn-filter-reset">
+        <i class="fa-solid fa-rotate-left"></i> Reset
+      </button>
+    </div>
+    <div class="export-bar">
+      <span class="bar-label">Export:</span>
+      <button class="btn btn-success btn-sm" id="btn-export-xls"><i class="fa-solid fa-file-excel"></i> XLS</button>
+      <button class="btn btn-danger btn-sm" id="btn-export-pdf"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+      <button class="btn btn-secondary btn-sm" id="btn-export-json"><i class="fa-solid fa-file-code"></i> Backup</button>
+      <button class="btn btn-secondary btn-sm" id="btn-import-json"><i class="fa-solid fa-file-import"></i> Import</button>
+    </div>
+    <div id="data-container">
+      <div class="empty-state">
+        <i class="fa-solid fa-inbox"></i>
+        <p>Belum ada data</p>
+        <small>Pilih KD dan masukkan data di tab Input</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIWAYAT -->
+  <section class="page" id="page-log">
+    <div class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Aktivitas</div>
+    <div class="card"><div id="log-container"></div></div>
+  </section>
+
+  <!-- PENGATURAN -->
+  <section class="page" id="page-settings">
+    <div class="section-title"><i class="fa-solid fa-sliders"></i> Pengaturan</div>
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-user"></i> Profil</div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <label>Nama Pengguna</label>
+          <small>Tidak dapat diubah melalui UI</small>
+        </div>
+        <span style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--accent)">Adit</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-gear"></i> Preferensi</div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <label>Auto expand grup baru</label>
+          <small>Buka otomatis grup KD yang baru ditambahkan</small>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="setting-auto-expand" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <label>Konfirmasi sebelum hapus</label>
+          <small>Tampilkan dialog konfirmasi saat menghapus data</small>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="setting-confirm-delete" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-database"></i> Data</div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <label>Backup &amp; Restore</label>
+          <small>Export/import data ke file JSON</small>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="Exporter.exportJSON()"><i class="fa-solid fa-download"></i> Backup</button>
+          <button class="btn btn-secondary btn-sm" onclick="Exporter.importJSON()"><i class="fa-solid fa-upload"></i> Restore</button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <label style="color:var(--danger)">Hapus Semua Data</label>
+          <small>Menghapus seluruh data secara permanen</small>
+        </div>
+        <button class="btn btn-danger btn-sm" id="btn-clear-all"><i class="fa-solid fa-trash-can"></i> Hapus Semua</button>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--border-accent)">
+      <div class="card-title"><i class="fa-solid fa-circle-info"></i> Tentang</div>
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.9">
+        <strong style="color:var(--text-secondary)">DITZ SCAN</strong> v1.0.0<br/>
+        Sistem manajemen data scan berbasis browser.<br/>
+        Data disimpan secara lokal di perangkat.<br/>
+        <span style="color:var(--accent)">PWA-ready</span> — dapat diinstall di HP.
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-item active" data-page="dashboard">
+    <div class="nav-icon"><i class="fa-solid fa-gauge"></i></div>
+    <span class="nav-label">Dashboard</span>
+  </div>
+  <div class="bottom-nav-item" data-page="data">
+    <div class="nav-icon"><i class="fa-solid fa-table"></i></div>
+    <span class="nav-label">Data</span>
+  </div>
+  <div class="bottom-nav-item nav-center" data-page="input">
+    <div class="nav-icon"><i class="fa-solid fa-keyboard"></i></div>
+    <span class="nav-label">Input</span>
+  </div>
+  <div class="bottom-nav-item" data-page="log">
+    <div class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+    <span class="nav-label">Riwayat</span>
+  </div>
+  <div class="bottom-nav-item" data-page="settings">
+    <div class="nav-icon"><i class="fa-solid fa-sliders"></i></div>
+    <span class="nav-label">Setting</span>
+  </div>
+</nav>
+
+<!-- MODAL: Edit Baris -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fa-solid fa-pen" style="color:var(--accent);margin-right:8px"></i>Edit Baris</span>
+      <button class="modal-close" id="edit-modal-close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="edit-modal-body" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="btn-edit-cancel">Batal</button>
+      <button class="btn btn-primary" id="btn-edit-save"><i class="fa-solid fa-check"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Kamera -->
+<div class="modal-overlay hidden" id="camera-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title"><i class="fa-solid fa-camera" style="color:var(--accent);margin-right:8px"></i>Scan Kamera</span>
+      <button class="modal-close" onclick="InputManager.closeCamera()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="scan-status" data-state="idle"></div>
+      <div class="camera-guide">
+        <video id="camera-preview" autoplay playsinline muted></video>
+      </div>
+      <p class="camera-hint">
+        <i class="fa-solid fa-circle-info"></i>
+        Arahkan barcode/QR ke dalam bingkai persegi. Deteksi otomatis aktif.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="InputManager.closeCamera()">
+        <i class="fa-solid fa-xmark"></i> Tutup
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="js/data.js"></script>
+<script src="js/kd.js"></script>
+<script src="js/input.js"></script>
+<script src="js/table.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
