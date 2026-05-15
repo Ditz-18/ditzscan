@@ -1,23 +1,8 @@
-// input.js — Input & Camera Scan Logic (ZXing barcode decoder)
+// input.js — Input & Camera Scan (ZXing @zxing/browser bundled lokal)
 const InputManager = (() => {
-  let _stream    = null;
-  let _scanning  = false;
-  let _reader    = null;
-  let _rafId     = null;
-  let _onSubmit  = null;
-  let _zxingReady = false;
-
-  // ── Load ZXing dari CDN ─────────────────────────────────────
-  function loadZXing() {
-    return new Promise((resolve) => {
-      if (window.ZXing) { resolve(true); return; }
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/zxing-js/0.21.1/zxing.min.js';
-      script.onload  = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.head.appendChild(script);
-    });
-  }
+  let _reader   = null;
+  let _controls = null;
+  let _onSubmit = null;
 
   // ── Submit input string ─────────────────────────────────────
   function submit() {
@@ -42,101 +27,66 @@ const InputManager = (() => {
     el.style.height = Math.min(el.scrollHeight, 200) + 'px';
   }
 
-  // ── Buka kamera + mulai scan ────────────────────────────────
+  // ── Set status label ────────────────────────────────────────
+  function setStatus(state, msg) {
+    const el = document.getElementById('scan-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.dataset.state = state;
+  }
+
+  // ── Buka kamera & scan ──────────────────────────────────────
   async function openCamera() {
     const modal = document.getElementById('camera-modal');
     if (!modal) return;
-
-    setScanStatus('loading', 'Memuat decoder barcode...');
     modal.classList.remove('hidden');
+    setStatus('loading', 'Mempersiapkan kamera...');
 
-    // Load ZXing
-    const ok = await loadZXing();
-    if (!ok || !window.ZXing) {
-      setScanStatus('error', 'Gagal memuat library decoder.');
-      Toast.show('Gagal memuat ZXing. Cek koneksi internet.', 'danger');
+    // ZXing harus sudah ada (dimuat via <script> di HTML)
+    if (!window.ZXingBrowser || !window.ZXingBrowser.BrowserMultiFormatReader) {
+      setStatus('error', 'Library scanner tidak termuat. Coba reload.');
+      Toast.show('ZXing tidak tersedia.', 'danger');
       return;
     }
-    _zxingReady = true;
 
-    // Buka kamera
     try {
-      _stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width:  { ideal: 1280 },
-          height: { ideal: 720 },
-        }
-      });
+      _reader = new window.ZXingBrowser.BrowserMultiFormatReader();
+
       const video = document.getElementById('camera-preview');
       if (!video) return;
-      video.srcObject = _stream;
-      await video.play();
 
-      setScanStatus('scanning', 'Scan aktif — arahkan ke barcode / QR code');
-      _scanning = true;
-      startDecodeLoop(video);
+      setStatus('scanning', 'Scan aktif — arahkan ke barcode / QR code');
+
+      // decodeFromConstraints: scan terus-menerus sampai berhasil
+      _controls = await _reader.decodeFromConstraints(
+        {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width:  { ideal: 1280 },
+            height: { ideal: 720 },
+          }
+        },
+        video,
+        (result, err, controls) => {
+          if (result) {
+            onDetected(result.getText(), controls);
+          }
+          // err = NotFoundException tiap frame tidak ada barcode — diabaikan
+        }
+      );
+
     } catch (err) {
-      setScanStatus('error', 'Kamera tidak dapat diakses.');
-      Toast.show('Kamera error: ' + err.message, 'danger');
+      setStatus('error', 'Kamera tidak dapat diakses.');
+      Toast.show('Error kamera: ' + (err.message || err), 'danger');
       closeCamera();
     }
   }
 
-  // ── Decode loop menggunakan ZXing ───────────────────────────
-  function startDecodeLoop(video) {
-    if (!window.ZXing) return;
+  // ── Deteksi berhasil ────────────────────────────────────────
+  function onDetected(text, controls) {
+    if (controls) controls.stop();
+    _controls = null;
 
-    const hints = new Map();
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-      ZXing.BarcodeFormat.QR_CODE,
-      ZXing.BarcodeFormat.CODE_128,
-      ZXing.BarcodeFormat.CODE_39,
-      ZXing.BarcodeFormat.DATA_MATRIX,
-      ZXing.BarcodeFormat.PDF_417,
-      ZXing.BarcodeFormat.EAN_13,
-      ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.ITF,
-    ]);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-    _reader = new ZXing.BrowserMultiFormatReader(hints);
-
-    const canvas = document.createElement('canvas');
-    const ctx    = canvas.getContext('2d', { willReadFrequently: true });
-
-    function tick() {
-      if (!_scanning || !_stream) return;
-
-      if (video.readyState === video.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
-        canvas.width  = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        try {
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const lum  = new ZXing.RGBLuminanceSource(imgData.data, canvas.width, canvas.height);
-          const bin  = new ZXing.HybridBinarizer(lum);
-          const bmp  = new ZXing.BinaryBitmap(bin);
-          const res  = _reader.decode(bmp);
-
-          if (res && res.getText()) {
-            onDetected(res.getText());
-            return; // stop loop setelah berhasil
-          }
-        } catch (e) {
-          // NotFoundException biasa → lanjut
-        }
-      }
-
-      _rafId = requestAnimationFrame(tick);
-    }
-
-    _rafId = requestAnimationFrame(tick);
-  }
-
-  // ── Hasil deteksi ───────────────────────────────────────────
-  function onDetected(text) {
     if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
 
     const ta = document.getElementById('main-input');
@@ -147,35 +97,30 @@ const InputManager = (() => {
       setTimeout(() => { ta.style.borderColor = ''; }, 2000);
     }
 
-    setScanStatus('success', 'Berhasil terdeteksi!');
+    setStatus('success', 'Berhasil terdeteksi!');
     closeCamera();
-    Toast.show('Barcode terdeteksi! Klik "Tambah Data" untuk menyimpan.', 'success');
+    Toast.show('Terdeteksi! Klik "Tambah Data" untuk menyimpan.', 'success');
     setTimeout(() => { if (ta) ta.focus(); }, 300);
   }
 
   // ── Tutup kamera ────────────────────────────────────────────
   function closeCamera() {
-    _scanning = false;
-    if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
-    if (_reader) { try { _reader.reset(); } catch(e){} _reader = null; }
-    if (_stream) { _stream.getTracks().forEach(t => t.stop()); _stream = null; }
+    if (_controls) { try { _controls.stop(); } catch(e){} _controls = null; }
+    if (_reader)   { try { _reader.reset();  } catch(e){} _reader   = null; }
+
+    const video = document.getElementById('camera-preview');
+    if (video && video.srcObject) {
+      video.srcObject.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+    }
+
     const modal = document.getElementById('camera-modal');
     if (modal) modal.classList.add('hidden');
-    const video = document.getElementById('camera-preview');
-    if (video) video.srcObject = null;
-    setScanStatus('idle', '');
+    setStatus('idle', '');
   }
 
-  // ── Status label ────────────────────────────────────────────
-  function setScanStatus(state, msg) {
-    const el = document.getElementById('scan-status');
-    if (!el) return;
-    el.textContent = msg;
-    el.dataset.state = state;
-  }
-
-  // ── Paste & input listener ──────────────────────────────────
-  function initPaste() {
+  // ── Paste & keyboard shortcut ───────────────────────────────
+  function initInput() {
     const ta = document.getElementById('main-input');
     if (!ta) return;
     ta.addEventListener('paste', () => {
@@ -196,7 +141,7 @@ const InputManager = (() => {
   return {
     init(onSubmitCb) {
       _onSubmit = onSubmitCb;
-      initPaste();
+      initInput();
       document.getElementById('btn-input-submit')?.addEventListener('click', submit);
       document.getElementById('btn-input-clear')?.addEventListener('click', () => {
         const ta = document.getElementById('main-input');

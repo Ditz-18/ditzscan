@@ -7,6 +7,8 @@ const ASSETS = [
   './css/components.css',
   './css/table.css',
   './css/responsive.css',
+  './js/lib/zxing-library.min.js',
+  './js/lib/zxing-browser.min.js',
   './js/data.js',
   './js/kd.js',
   './js/input.js',
