@@ -69,6 +69,12 @@
   <!-- DASHBOARD -->
   <section class="page active" id="page-dashboard">
     <div class="section-title"><i class="fa-solid fa-gauge"></i> Dashboard</div>
+    <!-- Tanggal hari ini -->
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <i class="fa-solid fa-calendar" style="color:var(--accent)"></i>
+      <span id="dash-today-label"></span>
+    </div>
+
     <div class="dash-stats">
       <div class="dash-stat-card">
         <div class="dash-stat-label">Total Grup KD</div>
@@ -79,6 +85,16 @@
         <div class="dash-stat-label">Total Baris Data</div>
         <div class="dash-stat-num" id="dash-rows">0</div>
         <i class="fa-solid fa-list-ol dash-stat-icon"></i>
+      </div>
+      <div class="dash-stat-card green">
+        <div class="dash-stat-label">Baris Hari Ini</div>
+        <div class="dash-stat-num" id="dash-today-rows">0</div>
+        <i class="fa-solid fa-calendar-day dash-stat-icon"></i>
+      </div>
+      <div class="dash-stat-card yellow">
+        <div class="dash-stat-label">KD Aktif Hari Ini</div>
+        <div class="dash-stat-num" id="dash-today-groups">0</div>
+        <i class="fa-solid fa-folder-open dash-stat-icon"></i>
       </div>
     </div>
     <div class="card">
@@ -164,13 +180,27 @@
   <!-- DATA & TABLE -->
   <section class="page" id="page-data">
     <div class="section-title"><i class="fa-solid fa-table"></i> Data &amp; Tabel</div>
+    <!-- Filter Bar -->
     <div class="filter-bar">
       <input type="search" class="filter-search" id="filter-search" placeholder="Cari di semua kolom..." />
       <select class="filter-select" id="filter-kd"><option value="">Semua KD</option></select>
+    </div>
+    <div class="filter-bar filter-date-bar">
+      <div class="date-range-wrap">
+        <i class="fa-solid fa-calendar-days" style="color:var(--text-muted);font-size:13px"></i>
+        <input type="date" class="filter-date" id="filter-date-from" title="Dari tanggal" />
+        <span class="date-sep">—</span>
+        <input type="date" class="filter-date" id="filter-date-to" title="Sampai tanggal" />
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-filter-today">
+        <i class="fa-solid fa-calendar-day"></i> Hari Ini
+      </button>
       <button class="btn btn-secondary btn-sm" id="btn-filter-reset">
         <i class="fa-solid fa-rotate-left"></i> Reset
       </button>
     </div>
+
+    <!-- Export Bar -->
     <div class="export-bar">
       <span class="bar-label">Export:</span>
       <button class="btn btn-success btn-sm" id="btn-export-xls"><i class="fa-solid fa-file-excel"></i> XLS</button>
