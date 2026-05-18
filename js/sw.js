@@ -1,5 +1,5 @@
 // sw.js — Service Worker (PWA)
-const CACHE = 'ditzscan-v1';
+const CACHE = 'ditzscan-v1.0';
 const ASSETS = [
   './',
   './index.html',

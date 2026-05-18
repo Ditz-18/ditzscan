@@ -165,6 +165,65 @@ const Data = (() => {
       return Object.values(_groups).flat();
     },
 
+    // Ambil semua tanggal unik (dari _ts = tanggal input)
+    getUniqueDates() {
+      const dates = new Set();
+      this.getAllRows().forEach(r => {
+        if (r._ts) dates.add(r._ts.slice(0, 10));
+      });
+      return [...dates].sort().reverse(); // terbaru dulu
+    },
+
+    // Filter rows by tanggal input (YYYY-MM-DD)
+    getRowsByDate(dateStr) {
+      if (!dateStr) return this.getAllRows();
+      return this.getAllRows().filter(r => r._ts && r._ts.slice(0, 10) === dateStr);
+    },
+
+    // Filter rows by range tanggal
+    getRowsByDateRange(from, to) {
+      return this.getAllRows().filter(r => {
+        if (!r._ts) return false;
+        const d = r._ts.slice(0, 10);
+        if (from && d < from) return false;
+        if (to   && d > to)   return false;
+        return true;
+      });
+    },
+
+    // Filter groups by tanggal (return groups object yg sudah difilter)
+    getGroupsByDate(dateStr) {
+      const result = {};
+      Object.entries(_groups).forEach(([kd, rows]) => {
+        const filtered = rows.filter(r => !dateStr || (r._ts && r._ts.slice(0,10) === dateStr));
+        if (filtered.length > 0) result[kd] = filtered;
+      });
+      return result;
+    },
+
+    // Filter groups by date range
+    getGroupsByDateRange(from, to) {
+      const result = {};
+      Object.entries(_groups).forEach(([kd, rows]) => {
+        const filtered = rows.filter(r => {
+          if (!r._ts) return !from && !to;
+          const d = r._ts.slice(0, 10);
+          if (from && d < from) return false;
+          if (to   && d > to)   return false;
+          return true;
+        });
+        if (filtered.length > 0) result[kd] = filtered;
+      });
+      return result;
+    },
+
+    // Stats per tanggal (untuk dashboard)
+    getStatsByDate(dateStr) {
+      const rows = dateStr ? this.getRowsByDate(dateStr) : this.getAllRows();
+      const kdSet = new Set(rows.map(r => r._kd));
+      return { totalGroups: kdSet.size, totalRows: rows.length };
+    },
+
     // Stats
     getStats() {
       const groups = Object.keys(_groups);

@@ -57,10 +57,21 @@ const App = (() => {
   // ── Dashboard ───────────────────────────────────────────────
   function renderDashboard() {
     const s = Data.getStats();
+    const today = new Date().toISOString().slice(0, 10);
+    const todayStats = Data.getStatsByDate(today);
     const el = n => document.getElementById(n);
 
-    if (el('dash-groups')) el('dash-groups').textContent = s.totalGroups;
-    if (el('dash-rows'))   el('dash-rows').textContent   = s.totalRows;
+    if (el('dash-groups'))       el('dash-groups').textContent       = s.totalGroups;
+    if (el('dash-rows'))         el('dash-rows').textContent         = s.totalRows;
+    if (el('dash-today-rows'))   el('dash-today-rows').textContent   = todayStats.totalRows;
+    if (el('dash-today-groups')) el('dash-today-groups').textContent = todayStats.totalGroups;
+
+    // Tampilkan tanggal hari ini
+    if (el('dash-today-label')) {
+      el('dash-today-label').textContent = new Date().toLocaleDateString('id-ID', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+    }
 
     // Recent KD list
     const names = Data.getGroupNames().slice(0, 8);
@@ -107,18 +118,41 @@ const App = (() => {
 
   // ── Filter bar for data page ────────────────────────────────
   function renderFilterBar() {
-    const searchEl = document.getElementById('filter-search');
-    const kdEl = document.getElementById('filter-kd');
-    if (searchEl) {
-      searchEl.addEventListener('input', () => {
-        TableManager.setFilter(searchEl.value, kdEl?.value);
-      });
+    const searchEl   = document.getElementById('filter-search');
+    const kdEl       = document.getElementById('filter-kd');
+    const dateFromEl = document.getElementById('filter-date-from');
+    const dateToEl   = document.getElementById('filter-date-to');
+
+    function applyFilters() {
+      TableManager.setFilter(
+        searchEl?.value   || '',
+        kdEl?.value       || '',
+        dateFromEl?.value || '',
+        dateToEl?.value   || ''
+      );
     }
-    if (kdEl) {
-      kdEl.addEventListener('change', () => {
-        TableManager.setFilter(searchEl?.value, kdEl.value);
-      });
-    }
+
+    searchEl?.addEventListener('input', applyFilters);
+    kdEl?.addEventListener('change', applyFilters);
+    dateFromEl?.addEventListener('change', applyFilters);
+    dateToEl?.addEventListener('change', applyFilters);
+
+    // Tombol hari ini
+    document.getElementById('btn-filter-today')?.addEventListener('click', () => {
+      const today = new Date().toISOString().slice(0, 10);
+      if (dateFromEl) dateFromEl.value = today;
+      if (dateToEl)   dateToEl.value   = today;
+      applyFilters();
+    });
+
+    // Reset semua filter
+    document.getElementById('btn-filter-reset')?.addEventListener('click', () => {
+      if (searchEl)   searchEl.value   = '';
+      if (kdEl)       kdEl.value       = '';
+      if (dateFromEl) dateFromEl.value = '';
+      if (dateToEl)   dateToEl.value   = '';
+      TableManager.resetFilters();
+    });
   }
 
   // ── Log page ────────────────────────────────────────────────
@@ -219,14 +253,18 @@ const App = (() => {
     // Camera modal close
     document.getElementById('btn-camera-close')?.addEventListener('click', InputManager.closeCamera);
 
-    // Export buttons
+    // Export buttons — pakai filter aktif termasuk tanggal
     document.getElementById('btn-export-xls')?.addEventListener('click', () => {
-      const kd = document.getElementById('filter-kd')?.value || '';
-      Exporter.exportXLS(kd || null);
+      const kd   = document.getElementById('filter-kd')?.value       || '';
+      const from = document.getElementById('filter-date-from')?.value || '';
+      const to   = document.getElementById('filter-date-to')?.value   || '';
+      Exporter.exportXLS(kd || null, from || null, to || null);
     });
     document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
-      const kd = document.getElementById('filter-kd')?.value || '';
-      Exporter.exportPDF(kd || null);
+      const kd   = document.getElementById('filter-kd')?.value       || '';
+      const from = document.getElementById('filter-date-from')?.value || '';
+      const to   = document.getElementById('filter-date-to')?.value   || '';
+      Exporter.exportPDF(kd || null, from || null, to || null);
     });
     document.getElementById('btn-export-json')?.addEventListener('click', Exporter.exportJSON);
     document.getElementById('btn-import-json')?.addEventListener('click', Exporter.importJSON);

@@ -10,12 +10,17 @@ const TableManager = (() => {
   let _sortDir = 1; // 1 asc, -1 desc
   let _filterText = '';
   let _filterKD = '';
+  let _filterDateFrom = '';
+  let _filterDateTo = '';
   let _openGroups = new Set();
 
   // ── Build column header row ─────────────────────────────────
   function buildThead() {
     return `<thead><tr>
       <th class="td-no">#</th>
+      <th data-col="_ts" onclick="TableManager.sortBy('_ts')" style="width:90px">
+        Tgl Input<span class="sort-icon"></span>
+      </th>
       ${COLS.map(c => `
         <th data-col="${c}" onclick="TableManager.sortBy('${c}')">
           ${c}<span class="sort-icon"></span>
@@ -26,6 +31,9 @@ const TableManager = (() => {
 
   // ── Build one row ───────────────────────────────────────────
   function buildRow(row, idx) {
+    const tglInput = row._ts ? row._ts.slice(0,10) : '';
+    const tglCell = `<td class="td-date-input" title="${row._ts || ''}">${tglInput}</td>`;
+
     const cells = COLS.map(col => {
       const val = row[col] !== undefined ? row[col] : '';
       const safeVal = String(val).replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -40,6 +48,7 @@ const TableManager = (() => {
 
     return `<tr data-id="${row._id}">
       <td class="td-no">${idx + 1}</td>
+      ${tglCell}
       ${cells}
       <td>
         <div class="td-actions">
@@ -60,7 +69,7 @@ const TableManager = (() => {
   function buildGroup(kd, rows) {
     const isOpen = _openGroups.has(kd);
     const filtered = filterRows(rows);
-    if (_filterText && filtered.length === 0) return '';
+    if ((_filterText || _filterDateFrom || _filterDateTo) && filtered.length === 0) return '';
     if (_filterKD && kd !== _filterKD) return '';
 
     const sorted = sortRows(filtered);
@@ -268,7 +277,7 @@ const TableManager = (() => {
   }
 
   function sortRows(rows) {
-    if (!_sortField) return rows;
+    if (!_sortField) return [...rows].sort((a,b) => (b._ts||'').localeCompare(a._ts||'')); // default: terbaru dulu
     return [...rows].sort((a, b) => {
       const va = a[_sortField] ?? '';
       const vb = b[_sortField] ?? '';
@@ -279,16 +288,36 @@ const TableManager = (() => {
 
   // ── Filter ──────────────────────────────────────────────────
   function filterRows(rows) {
-    if (!_filterText) return rows;
-    const q = _filterText.toLowerCase();
-    return rows.filter(row =>
-      Object.values(row).some(v => String(v).toLowerCase().includes(q))
-    );
+    return rows.filter(row => {
+      // text search
+      if (_filterText) {
+        const q = _filterText.toLowerCase();
+        const match = Object.entries(row).some(([k, v]) =>
+          !k.startsWith('_') && String(v).toLowerCase().includes(q)
+        );
+        if (!match) return false;
+      }
+      // date range filter (berdasarkan _ts = tanggal input)
+      if (_filterDateFrom || _filterDateTo) {
+        const d = row._ts ? row._ts.slice(0, 10) : '';
+        if (_filterDateFrom && d < _filterDateFrom) return false;
+        if (_filterDateTo   && d > _filterDateTo)   return false;
+      }
+      return true;
+    });
   }
 
-  function setFilter(text, kd) {
-    _filterText = text ?? _filterText;
-    _filterKD   = kd  ?? _filterKD;
+  function setFilter(text, kd, dateFrom, dateTo) {
+    if (text     !== undefined) _filterText     = text;
+    if (kd       !== undefined) _filterKD       = kd;
+    if (dateFrom !== undefined) _filterDateFrom = dateFrom;
+    if (dateTo   !== undefined) _filterDateTo   = dateTo;
+    renderAll();
+  }
+
+  function resetFilters() {
+    _filterText = ''; _filterKD = '';
+    _filterDateFrom = ''; _filterDateTo = '';
     renderAll();
   }
 
@@ -330,7 +359,7 @@ const TableManager = (() => {
   return {
     renderAll, renderGroup, toggleGroup,
     startEdit, editRow, deleteRow, deleteGroup,
-    focusInputForKD, sortBy, setFilter, updateStats,
+    focusInputForKD, sortBy, setFilter, resetFilters, updateStats,
     cols: COLS,
   };
 })();

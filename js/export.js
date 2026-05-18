@@ -7,23 +7,30 @@ const Exporter = (() => {
   ];
 
   // ── Export XLS (CSV-based, opens in Excel) ──────────────────
-  function exportXLS(kdFilter) {
-    const groups = Data.getGroups();
-    const names = kdFilter
-      ? [kdFilter]
-      : Data.getGroupNames();
+  function exportXLS(kdFilter, dateFrom, dateTo) {
+    let groups;
+    if (dateFrom || dateTo) {
+      groups = Data.getGroupsByDateRange(dateFrom || '', dateTo || '');
+    } else {
+      groups = Data.getGroups();
+    }
+
+    let names = Object.keys(groups).sort();
+    if (kdFilter) names = names.filter(n => n === kdFilter);
 
     if (names.length === 0) { Toast.show('Tidak ada data untuk diekspor.', 'warning'); return; }
 
     const rows = [];
-    // Header
-    rows.push(['KD', ...COLS]);
+    // Header — tambah kolom Tgl Input
+    rows.push(['KD', 'Tgl Input', 'Waktu Input', ...COLS]);
 
     names.forEach(kd => {
       const group = groups[kd] || [];
       if (group.length === 0) return;
       group.forEach(row => {
-        rows.push([kd, ...COLS.map(c => row[c] ?? '')]);
+        const tgl = row._ts ? row._ts.slice(0,10) : '';
+        const jam = row._ts ? row._ts.slice(11,19) : '';
+        rows.push([kd, tgl, jam, ...COLS.map(c => row[c] ?? '')]);
       });
     });
 
@@ -38,11 +45,16 @@ const Exporter = (() => {
   }
 
   // ── Export PDF (print stylesheet) ──────────────────────────
-  function exportPDF(kdFilter) {
-    const groups = Data.getGroups();
-    const names = kdFilter
-      ? [kdFilter]
-      : Data.getGroupNames();
+  function exportPDF(kdFilter, dateFrom, dateTo) {
+    let groups;
+    if (dateFrom || dateTo) {
+      groups = Data.getGroupsByDateRange(dateFrom || '', dateTo || '');
+    } else {
+      groups = Data.getGroups();
+    }
+
+    let names = Object.keys(groups).sort();
+    if (kdFilter) names = names.filter(n => n === kdFilter);
 
     if (names.length === 0) { Toast.show('Tidak ada data untuk diekspor.', 'warning'); return; }
 
@@ -68,7 +80,7 @@ const Exporter = (() => {
       </style>
     </head><body>
       <h1>DITZ SCAN</h1>
-      <div class="meta">Dicetak oleh: Adit &nbsp;|&nbsp; ${new Date().toLocaleString('id-ID')}</div>`;
+      <div class="meta">Dicetak oleh: Adit &nbsp;|&nbsp; ${new Date().toLocaleString('id-ID')}${dateFrom || dateTo ? ' &nbsp;|&nbsp; Periode: ' + (dateFrom||'..') + ' s/d ' + (dateTo||'..') : ''}</div>`;
 
     names.forEach(kd => {
       const group = groups[kd] || [];
